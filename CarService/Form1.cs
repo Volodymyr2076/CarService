@@ -36,7 +36,7 @@ namespace CarService
 
         private void оПрограммеToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            // Тут должен быть код с выведением информации
         }
 
         private void Form1_Load(object sender, EventArgs e)
