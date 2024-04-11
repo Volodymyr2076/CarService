@@ -37,6 +37,7 @@
             this.tabPageHome = new System.Windows.Forms.TabPage();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.dataGridViewWork = new System.Windows.Forms.DataGridView();
+            this.button2 = new System.Windows.Forms.Button();
             this.addPhoneTextBox = new System.Windows.Forms.TextBox();
             this.label13 = new System.Windows.Forms.Label();
             this.addNameTextBox = new System.Windows.Forms.TextBox();
@@ -98,7 +99,6 @@
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.label14 = new System.Windows.Forms.Label();
             this.dataGridViewPayments = new System.Windows.Forms.DataGridView();
-            this.button2 = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPageHome.SuspendLayout();
@@ -225,6 +225,16 @@
             this.dataGridViewWork.Size = new System.Drawing.Size(622, 523);
             this.dataGridViewWork.TabIndex = 0;
             this.dataGridViewWork.DoubleClick += new System.EventHandler(this.dataGridViewWork_DoubleClick);
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(1069, 28);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 21;
+            this.button2.Text = "Добавить";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // addPhoneTextBox
             // 
@@ -357,7 +367,6 @@
             this.label6.Size = new System.Drawing.Size(75, 13);
             this.label6.TabIndex = 3;
             this.label6.Text = "Поиск по VIN";
-            this.label6.Click += new System.EventHandler(this.label6_Click);
             // 
             // textBoxVinSearch
             // 
@@ -829,16 +838,6 @@
             this.dataGridViewPayments.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridViewPayments.Size = new System.Drawing.Size(558, 578);
             this.dataGridViewPayments.TabIndex = 0;
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(1069, 28);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 21;
-            this.button2.Text = "Добавить";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // Form1
             // 
