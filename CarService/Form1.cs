@@ -395,11 +395,6 @@ WHERE jr.date_completion IS NULL
 ");
         }
 
-        private void label6_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void dataGridViewCar_DoubleClick(object sender, EventArgs e)
         {
 
