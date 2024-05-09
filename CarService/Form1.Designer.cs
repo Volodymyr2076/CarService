@@ -30,7 +30,6 @@
         {
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.файлToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.изменитьСтрокуПодключенияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.закрытьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.оПрограммеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -135,23 +134,15 @@
             // файлToolStripMenuItem
             // 
             this.файлToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.изменитьСтрокуПодключенияToolStripMenuItem,
             this.закрытьToolStripMenuItem});
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
             this.файлToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.файлToolStripMenuItem.Text = "Файл";
             // 
-            // изменитьСтрокуПодключенияToolStripMenuItem
-            // 
-            this.изменитьСтрокуПодключенияToolStripMenuItem.Name = "изменитьСтрокуПодключенияToolStripMenuItem";
-            this.изменитьСтрокуПодключенияToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
-            this.изменитьСтрокуПодключенияToolStripMenuItem.Text = "Изменить строку подключения";
-            this.изменитьСтрокуПодключенияToolStripMenuItem.Click += new System.EventHandler(this.изменитьСтрокуПодключенияToolStripMenuItem_Click);
-            // 
             // закрытьToolStripMenuItem
             // 
             this.закрытьToolStripMenuItem.Name = "закрытьToolStripMenuItem";
-            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(120, 22);
             this.закрытьToolStripMenuItem.Text = "Закрыть";
             this.закрытьToolStripMenuItem.Click += new System.EventHandler(this.закрытьToolStripMenuItem_Click);
             // 
@@ -258,7 +249,6 @@
             this.addNameTextBox.Name = "addNameTextBox";
             this.addNameTextBox.Size = new System.Drawing.Size(100, 20);
             this.addNameTextBox.TabIndex = 18;
-            this.addNameTextBox.TextChanged += new System.EventHandler(this.textBox7_TextChanged);
             // 
             // label12
             // 
@@ -886,7 +876,6 @@
 
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem файлToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem изменитьСтрокуПодключенияToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem закрытьToolStripMenuItem;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPageHome;

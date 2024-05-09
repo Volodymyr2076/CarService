@@ -17,21 +17,17 @@ namespace CarService
 {
     public partial class Form1 : Form
     {
-        public static string ConnectionString { get; set; } = "Server=localhost;Port=5432;Database=postgres;User Id=postgres;Password=25542554";
+        private CarServiceModel Model { get; set; }
 
         public Form1()
         {
             InitializeComponent();
+            Model = CarServiceModel.Instance;
         }
 
         private void закрытьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
-        }
-
-        private void изменитьСтрокуПодключенияToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            new FormConnectionString().ShowDialog();
         }
 
         private void оПрограммеToolStripMenuItem_Click(object sender, EventArgs e)
@@ -51,133 +47,31 @@ namespace CarService
             LoadReportsList();
         }
 
-        public static void FillGridView(DataGridView dataGridView, string query)
-        {
-            NpgsqlConnection conn = new NpgsqlConnection("Server=localhost;Port=5432;Database=postgres;User Id=postgres;Password=25542554");
-            conn.Open();
-            NpgsqlCommand npgsqlCommand = new NpgsqlCommand();
-            npgsqlCommand.Connection = conn;
-            npgsqlCommand.CommandType = CommandType.Text;
-            npgsqlCommand.CommandText = query;
-            NpgsqlDataReader reader = npgsqlCommand.ExecuteReader();
-            //if (reader.HasRows)
-            {
-                DataTable dt = new DataTable();
-                dt.Load(reader);
-                dataGridView.DataSource = dt;
-            }
-            for (int i = 0; i < dataGridView.ColumnCount; i++)
-            {
-                dataGridView.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            }
-            conn.Dispose();
-            conn.Close();
-        }
-        public static void FillListBox(ListControl listControl, string query)
-        {
-            NpgsqlConnection conn = new NpgsqlConnection("Server=localhost;Port=5432;Database=postgres;User Id=postgres;Password=25542554");
-            conn.Open();
-            NpgsqlCommand npgsqlCommand = new NpgsqlCommand();
-            npgsqlCommand.Connection = conn;
-            npgsqlCommand.CommandType = CommandType.Text;
-            npgsqlCommand.CommandText = query;
-            NpgsqlDataReader reader = npgsqlCommand.ExecuteReader();
-            if (reader.HasRows)
-            {
-                DataTable dt = new DataTable();
-                dt.Load(reader);
-                foreach (DataRow row in dt.Rows)
-                {
-                    if (listControl is ListBox lb)
-                        lb.Items.Add(new ComboBoxItem(row[1].ToString(), row[0].ToString()));
-                    else if (listControl is ComboBox cb)
-                        cb.Items.Add(new ComboBoxItem(row[1].ToString(), row[0].ToString()));
-                }
-            }
-
-            conn.Dispose();
-            conn.Close();
-        }
-        public static DataTable ExecuteQuery(string query, bool hasReturnedValue = false)
-        {
-            NpgsqlConnection conn = new NpgsqlConnection("Server=localhost;Port=5432;Database=postgres;User Id=postgres;Password=25542554");
-            conn.Open();
-            NpgsqlCommand npgsqlCommand = new NpgsqlCommand();
-            npgsqlCommand.Connection = conn;
-            npgsqlCommand.CommandType = CommandType.Text;
-            npgsqlCommand.CommandText = query;
-            DataTable result = null;
-            if (hasReturnedValue)
-            {
-                NpgsqlDataReader reader = npgsqlCommand.ExecuteReader();
-                if (reader.HasRows)
-                {
-                    result = new DataTable();
-                    result.Load(reader);
-                }
-            }
-            else
-            {
-                npgsqlCommand.ExecuteNonQuery();
-            }
-            conn.Dispose();
-            conn.Close();
-            return result;
-        }
-
         private void LoadWorkers()
         {
-            FillGridView(dataGridViewWorkers, @"
-SELECT w.id AS ID, w.name AS Имя, b.box_number AS Бокс
-FROM car_service.worker AS w
-LEFT JOIN car_service.box AS b ON b.id = w.box_id
-");
-            Form1.FillListBox(comboBox2, @"
-SELECT w.id, w.name
-FROM car_service.worker AS w
-");
+            DataTable workersTable = Model.GetWorkers();
+            Helper.FillDataGridView(dataGridViewWorkers, workersTable);
+            Helper.FillListControl(comboBox2, workersTable);
         }
+
         private void LoadBox()
         {
-            FillGridView(dataGridViewBox, @"
-SELECT b.id AS ID, b.box_number AS Номер_Бокса, b.car_id AS Автомобиль
-FROM car_service.box AS b
-");
-            for (int i = 0; i < dataGridViewBox.RowCount - 1; i++)
-            {
-                comboBoxWorkersBox1.Items.Add(
-                    new ComboBoxItem(
-                        dataGridViewBox.Rows[i].Cells[1].Value.ToString(),
-                        dataGridViewBox.Rows[i].Cells[0].Value.ToString()
-                        )
-                    );
-            }
+            DataTable boxTable = Model.GetBox();
+            Helper.FillDataGridView(dataGridViewBox, boxTable);
+            Helper.FillListControl(comboBoxWorkersBox1, boxTable);
         }
 
         private void LoadJobs()
         {
-            FillGridView(dataGridViewJobs, @"
-SELECT j.id AS ID, j.types_of_jobs AS Наименование_Работ
-FROM car_service.jobs AS j
-");
-            for (int i = 0; i < dataGridViewJobs.RowCount - 1; i++)
-            {
-                comboBoxPriceTypeOfJobs.Items.Add(
-                    new ComboBoxItem(
-                        dataGridViewJobs.Rows[i].Cells[1].Value.ToString(),
-                        dataGridViewJobs.Rows[i].Cells[0].Value.ToString()
-                        )
-                    );
-            }
+            DataTable jobsTable = Model.GetJobs();
+            Helper.FillDataGridView(dataGridViewJobs, jobsTable);
+            Helper.FillListControl(comboBoxPriceTypeOfJobs, jobsTable);
         }
 
         private void LoadPrice()
         {
-            FillGridView(dataGridViewPrice, @"
-SELECT p.id AS ID, j.types_of_jobs  AS Наименование_Работ, p.price as Цена, p.date as Дата
-FROM car_service.price AS p
-join car_service.jobs as j on j.id  = p.jobs_id
-");
+            DataTable priceTable = Model.GetPrice();
+            Helper.FillDataGridView(dataGridViewPrice, priceTable);
         }
 
         private void buttonDelWorkers_Click(object sender, EventArgs e)
@@ -193,9 +87,7 @@ join car_service.jobs as j on j.id  = p.jobs_id
             {
                 try
                 {
-                    ExecuteQuery(@"
-DELETE FROM car_service.worker AS w
-WHERE w.id IN (" + String.Join(", ", ids) + ")");
+                    Model.DeleteWorkers(ids);
                     LoadWorkers();
                 }
                 catch
@@ -218,9 +110,7 @@ WHERE w.id IN (" + String.Join(", ", ids) + ")");
             {
                 try
                 {
-                    ExecuteQuery(@"
-DELETE FROM car_service.box AS b
-WHERE b.id IN (" + String.Join(", ", ids) + ")");
+                    Model.DeleteBox(ids);
                     LoadBox(); ;
                 }
                 catch
@@ -228,7 +118,6 @@ WHERE b.id IN (" + String.Join(", ", ids) + ")");
                     MessageBox.Show("Ошибка", "Удаление данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-
         }
 
         private void buttonDelJob_Click(object sender, EventArgs e)
@@ -244,9 +133,7 @@ WHERE b.id IN (" + String.Join(", ", ids) + ")");
             {
                 try
                 {
-                    ExecuteQuery(@"
-DELETE FROM car_service.jobs AS j
-WHERE j.id IN (" + String.Join(", ", ids) + ")");
+                    Model.DeleteJob(ids);
                     LoadJobs(); ;
                 }
                 catch
@@ -254,7 +141,6 @@ WHERE j.id IN (" + String.Join(", ", ids) + ")");
                     MessageBox.Show("Ошибка", "Удаление данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-
         }
 
         private void buttonDelPrice_Click(object sender, EventArgs e)
@@ -270,9 +156,7 @@ WHERE j.id IN (" + String.Join(", ", ids) + ")");
             {
                 try
                 {
-                    ExecuteQuery(@"
-DELETE FROM car_service.price AS p
-WHERE p.id IN (" + String.Join(", ", ids) + ")");
+                    Model.DeletePrice(ids);
                     LoadPrice(); ;
                 }
                 catch
@@ -280,7 +164,6 @@ WHERE p.id IN (" + String.Join(", ", ids) + ")");
                     MessageBox.Show("Ошибка", "Удаление данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-
         }
 
         private void buttonAddWorkers_Click(object sender, EventArgs e)
@@ -289,8 +172,7 @@ WHERE p.id IN (" + String.Join(", ", ids) + ")");
             ComboBoxItem box = comboBoxWorkersBox1.SelectedItem as ComboBoxItem;
             if (name != "" && box != null)
             {
-                ExecuteQuery(@"
-INSERT INTO car_service.worker(name, box_id) VALUES ('" + name + "', " + box.Value + ")");
+                Model.CreateWorker(name, box.Value);
                 textBoxWorkersName1.Text = "";
                 comboBoxWorkersBox1.SelectedItem = null;
             }
@@ -306,8 +188,7 @@ INSERT INTO car_service.worker(name, box_id) VALUES ('" + name + "', " + box.Val
             string typesOfJobs = textBoxJobsTypesOfJobs1.Text.Trim();
             if (typesOfJobs != "")
             {
-                ExecuteQuery(@"
-INSERT INTO car_service.jobs(types_of_jobs) VALUES ('" + typesOfJobs + "')");
+                Model.CreateJobs(typesOfJobs);
                 textBoxJobsTypesOfJobs1.Text = "";
             }
             else
@@ -319,11 +200,10 @@ INSERT INTO car_service.jobs(types_of_jobs) VALUES ('" + typesOfJobs + "')");
 
         private void buttonAddBox_Click(object sender, EventArgs e)
         {
-            string BoxNumber = textBoxBoxNumber.Text.Trim();
-            if (BoxNumber != "")
+            string boxNumber = textBoxBoxNumber.Text.Trim();
+            if (boxNumber != "")
             {
-                ExecuteQuery(@"
-INSERT INTO car_service.box(box_number) VALUES ('" + BoxNumber + "')");
+                Model.CreateBox(boxNumber);
                 textBoxBoxNumber.Text = "";
             }
             else
@@ -331,7 +211,6 @@ INSERT INTO car_service.box(box_number) VALUES ('" + BoxNumber + "')");
                 MessageBox.Show("Ошибка: все поля должны\nбыть заполнены", "Добавление данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             LoadBox();
-
         }
 
         private void buttonAddPrice_Click(object sender, EventArgs e)
@@ -341,9 +220,7 @@ INSERT INTO car_service.box(box_number) VALUES ('" + BoxNumber + "')");
             DateTime date = dateTimePickerPriceDate.Value;
             if (typeOfJobs != null && price > 0)
             {
-                Debug.WriteLine(date.ToString("DD.MM.YYYY"));
-                ExecuteQuery(@"
-INSERT INTO car_service.price(jobs_id, price, date) VALUES (" + typeOfJobs.Value + ", " + price + ", '" + date.ToString("dd.MM.yyyy") + "')");
+                Model.CreatePrice(typeOfJobs.Value, price.ToString(), date.ToString("dd.MM.yyyy"));
                 comboBoxPriceTypeOfJobs.SelectedItem = null;
                 numericUpDownPricePrice.Value = 0;
                 dateTimePickerPriceDate.Value = DateTime.Now;
@@ -355,49 +232,27 @@ INSERT INTO car_service.price(jobs_id, price, date) VALUES (" + typeOfJobs.Value
             LoadPrice();
         }
 
-
-
         private void LoadCar()
         {
-            FillGridView(dataGridViewCar, @"
-SELECT c1.id AS ID, c1.make AS Марка, c1.model AS Модель, c1.year AS Год, c1.volume AS Объем, c1.vin_code AS Винкод, c2.name AS Имя, c2.phone AS Телефон
-FROM car_service.car AS c1
-JOIN car_service.client AS c2 ON c2.id = c1.client_id
-");
+            DataTable CarTable = Model.GetCar();
+            Helper.FillDataGridView(dataGridViewCar, CarTable);
         }
 
         private void buttonSearchCar_Click(object sender, EventArgs e)
         {
             string Vin = textBoxVinSearch.Text.Trim();
-            if (Vin != "")
-            {
-                FillGridView(dataGridViewCar, @"
-SELECT c1.id AS ID, c1.make AS Марка, c1.model AS Модель, c1.year AS Год, c1.volume AS Объем, c1.vin_code AS Винкод, c2.name AS Имя, c2.phone AS Телефон
-FROM car_service.car AS c1
-JOIN car_service.client AS c2 ON c2.id = c1.client_id
-WHERE c1.vin_code LIKE '%" + Vin + @"%'
-");
-            }
-            else
-            {
-                LoadCar();
-            }
+            DataTable CarTable = Model.GetCar(Vin);
+            Helper.FillDataGridView(dataGridViewCar, CarTable);
         }
+
         private void LoadWork()
         {
-            FillGridView(dataGridViewWork, @"
-SELECT jr.id AS ID, c1.id AS ID_авто, c1.make AS Марка, c1.model AS Модель, c1.vin_code AS Винкод, w.id AS ID_работника, w.name AS Имя, b.box_number AS Номер_Бокса 
-FROM car_service.job_records AS jr
-left JOIN car_service.car AS c1 ON c1.id = jr.car_id
-left JOIN car_service.box AS b ON b.id = jr.box_id
-left JOIN car_service.worker AS w ON w.id = jr.worker_id 
-WHERE jr.date_completion IS NULL
-");
+            DataTable WorkTable = Model.GetWork();
+            Helper.FillDataGridView(dataGridViewWork, WorkTable);
         }
 
         private void dataGridViewCar_DoubleClick(object sender, EventArgs e)
         {
-
             string name = dataGridViewCar.SelectedRows[0].Cells[1].Value.ToString();
             string model = dataGridViewCar.SelectedRows[0].Cells[2].Value.ToString();
             string year = dataGridViewCar.SelectedRows[0].Cells[3].Value.ToString();
@@ -414,38 +269,21 @@ WHERE jr.date_completion IS NULL
             if (res == DialogResult.Yes)
             {
                 string id = dataGridViewWork.SelectedRows[0].Cells["id"].Value.ToString();
-                string box_number = dataGridViewWork.SelectedRows[0].Cells["Номер_Бокса"].Value.ToString();
-                string worker_id = dataGridViewWork.SelectedRows[0].Cells["id_работника"].Value.ToString();
-                ExecuteQuery(@"
-UPDATE car_service.job_records SET date_completion = '" + DateTime.Now.ToString("dd.MM.yyyy") +
-    "' WHERE car_service.job_records.id = " + id);
-                ExecuteQuery(@"
-UPDATE car_service.worker SET box_id = NULL" +
-    " WHERE car_service.worker.id = " + worker_id);
-                ExecuteQuery(@"
-UPDATE car_service.box SET car_id = NULL" +
-    " WHERE car_service.box.box_number = " + box_number);
-                ExecuteQuery(@"
-UPDATE car_service.payments SET pay = true, date_of_payment = '" + DateTime.Now.ToString("dd.MM.yyyy") +
-    "' WHERE car_service.payments.job_record_id = " + id);
+                string workerId = dataGridViewWork.SelectedRows[0].Cells["id_работника"].Value.ToString();
+                string boxNumber = dataGridViewWork.SelectedRows[0].Cells["Номер_Бокса"].Value.ToString();
+                Model.UpdateJobRecordsDateCompletion(id);
+                Model.UpdatePaymentsStatus(id);
+                Model.UpdateWoker(workerId, "NULL");
+                Model.UpdateBoxByBoxNumber(boxNumber, "NULL");
             }
             LoadWork();
             LoadPayment();
         }
 
-        private void label14_Click(object sender, EventArgs e)
-        {
-
-        }
         private void LoadPayment()
         {
-            FillGridView(dataGridViewPayments, @"
-SELECT p.id AS ID, c.name AS Клиент, j.types_of_jobs AS Вид_работ, p.date_of_payment AS Дата_выдачи, p.total_sum AS Сумма, p.pay AS Оплачен
-FROM car_service.payments AS p
-Join car_service.client AS c ON c.id = p.client_id
-Join car_service.job_records AS jr ON jr.id = p.job_record_id
-Join car_service.jobs AS j ON j.id = jr.job_id
-");
+            DataTable PaymentTable = Model.GetPayment();
+            Helper.FillDataGridView(dataGridViewPayments, PaymentTable);
         }
 
         private void button5_Click(object sender, EventArgs e)
@@ -458,109 +296,35 @@ Join car_service.jobs AS j ON j.id = jr.job_id
                     workerId = (comboBox2.SelectedItem as ComboBoxItem).Value;
                     date1 = dateTimePicker1.Value.ToString("dd.MM.yyyy");
                     date2 = dateTimePicker2.Value.ToString("dd.MM.yyyy");
-                    FillGridView(dataGridView1, @"
-select distinct c.id, c.make, c.model, c.""year"", c.vin_code 
-from car_service.job_records jr
-join car_service.car c on jr.car_id = c.id 
-where jr.worker_id = " + workerId + @" and jr.date_completion  between '" + date1 + @"' and '" + date2 + @"'
-order by c.make, c.model, c.""year""
-");
+                    Helper.FillDataGridView(dataGridView1, Model.GetReport1(workerId, date1, date2));
                     break;
 
                 case "Report 2":
                     date1 = dateTimePicker1.Value.ToString("dd.MM.yyyy");
                     date2 = dateTimePicker2.Value.ToString("dd.MM.yyyy");
-                    FillGridView(dataGridView1, @"
-select c.id, c.make, c.model, c.""year"", c.vin_code, COUNT(c.id) AS total
-from car_service.job_records jr 
-join car_service.car c on jr.car_id = c.id 
-where jr.date_completion  between '" + date1 + @"' and '" + date2 + @"'
-group by c.id;
-");
-                    //int total = 0;
-                    //foreach (var row in dataGridView1.Rows)
-                    //{
-                    //    DataGridViewRow row2 = row as DataGridViewRow;
-                    //    try
-                    //    {
-                    //        total += int.Parse(row2.Cells[5].Value.ToString());
-                    //    }
-                    //    catch (Exception) {}
-                    //}
-                    //dataGridView1.Rows.Add(new object[] { "", "", "", "", "Общее количество", total });
+                    Helper.FillDataGridView(dataGridView1, Model.GetReport2(date1, date2));
                     break;
 
                 case "Report 3":
-                    FillGridView(dataGridView1, @"
-select w.id, w.""name"" , count(*) as total 
-from car_service.job_records jr 
-join car_service.worker w on jr.worker_id = w.id
-group by w.id ;
-");
+                    Helper.FillDataGridView(dataGridView1, Model.GetReport3());
+
                     break;
 
                 case "Report 4":
-                    FillGridView(dataGridView1, @"
-select all w.""name"", jr.worker_id, count(*) as Total  
-FROM car_service.job_records jr  
-join car_service.worker w  on w.id = jr.worker_id
-group by w.""name"", jr.worker_id
-order by total desc;
-");
+                    Helper.FillDataGridView(dataGridView1, Model.GetReport4());
                     break;
 
                 case "Report 5":
-                    FillGridView(dataGridView1, @"
-select j.types_of_jobs, w.""name"" , COUNT (w.id) as Total
-from car_service.job_records jr 
-join car_service.jobs j on j.id = jr.job_id  
-join car_service.worker w  on w.id = jr.worker_id
-group by j.types_of_jobs, w.""name"" 
-order by j.types_of_jobs , total desc;
-");
-
+                    Helper.FillDataGridView(dataGridView1, Model.GetReport5());
                     break;
                 case "Report 6":
                     date1 = dateTimePicker1.Value.ToString("dd.MM.yyyy");
                     date2 = dateTimePicker2.Value.ToString("dd.MM.yyyy");
-                    FillGridView(dataGridView1, @"
-select w.id , w.""name"" 
-from car_service.worker w 
-where w.id not in (
-     select distinct jr.worker_id 
-     from car_service.job_records jr 
-     where jr.date_completion between '" + date1 + @"' and '" + date2 + @"')
-");
+                    Helper.FillDataGridView(dataGridView1, Model.GetReport6(date1, date2));
                     break;
 
                 case "Report 7":
-                    FillGridView(dataGridView1, @"
-select distinct  w.id, w.name, 'Обслужил максимальное количество машин' as description
-from car_service.worker w
-join car_service.job_records jr on w.id = jr.worker_id 
-where w.id in (
-	SELECT jr1.worker_id 
-	FROM car_service.job_records jr1
-	GROUP BY jr1.worker_id  
-	HAVING COUNT(*) = (
-	    SELECT MAX(client_count)
-	    FROM (
-	        SELECT COUNT(*) AS client_count
-	        FROM car_service.job_records jr2
-	        GROUP BY jr2.worker_id 
-	    ) AS counts
-	)
-)
-union 
-select distinct  w.id, w.name, 'В данный момент не работает в боксе' as description
-from car_service.worker w
-where w.box_id is null
-union 
-select distinct  w.id, w.name, 'В данный момент работает в боксе' as description
-from car_service.worker w
-where w.box_id is not null;
-");
-
+                    Helper.FillDataGridView(dataGridView1, Model.GetReport7());
                     break;
                 default:
                     break;
@@ -607,11 +371,6 @@ where w.box_id is not null;
             }
         }
 
-        private void textBox7_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void button2_Click(object sender, EventArgs e)
         {
             string make = addMarkTextBox.Text;
@@ -621,13 +380,8 @@ where w.box_id is not null;
             string vinCode = addVinTextBox.Text;
             string name = addNameTextBox.Text;
             string phone = addPhoneTextBox.Text;
-            DataTable clientIdTable = Form1.ExecuteQuery(@"
-INSERT INTO car_service.client(name, phone) 
-VALUES ('" + name + "', '" + phone + "') RETURNING id", hasReturnedValue: true);
-            string clientId = clientIdTable.Rows[0]["id"].ToString();
-            Form1.ExecuteQuery(@"
-INSERT INTO car_service.car(make, model, year, volume, vin_code, client_id) 
-VALUES ('" + make + "', '" + model + "' ," + year + ", " + volume + ", '" + vinCode + "', " + clientId + ")");
+            string clientId = Model.CreateClient(name, phone);
+            Model.CreateCar(make, model, year, volume, vinCode, clientId);
             LoadCar();
         }
     }
